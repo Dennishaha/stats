@@ -224,14 +224,21 @@ class ApplicationSettings: NSStackView {
         self.GPUButton = GPUButton
         
         let cpu = SystemKit.shared.device.info.cpu
+        let hasSuperCores = (cpu?.sCores ?? 0) > 0
         var tests: [PreferencesRow] = []
-        if (cpu?.eCores ?? 1) > 0 {
+        if (cpu?.eCores ?? (hasSuperCores ? 0 : 1)) > 0 {
             tests.append(PreferencesRow(localizedString("Efficiency cores"), component: CPUeButton))
         }
-        if (cpu?.pCores ?? 1) > 0 {
-            tests.append(PreferencesRow(localizedString("Performance cores"), component: CPUpButton))
+        if (cpu?.pCores ?? (hasSuperCores ? 0 : 1)) > 0 {
+            let title = hasSuperCores
+                ? localizedString("Performance cores") + " + " + localizedString("Super cores")
+                : localizedString("Performance cores")
+            let description = hasSuperCores
+                ? localizedString("Performance cores cannot be stressed separately from super cores on macOS.")
+                : nil
+            tests.append(PreferencesRow(title, description, component: CPUpButton))
         }
-        if (cpu?.sCores ?? 0) > 0 {
+        if hasSuperCores {
             tests.append(PreferencesRow(localizedString("Super cores"), component: CPUsButton))
         }
         if self.GPUTest != nil {
@@ -476,6 +483,7 @@ class ApplicationSettings: NSStackView {
     }
     
     @objc private func toggleCPUpStressTest() {
+        guard !self.CPUsTest.isRunning else { return }
         if self.CPUpTest.isRunning {
             self.CPUpTest.stop()
             self.CPUpButton?.title = localizedString("Run")
@@ -483,9 +491,11 @@ class ApplicationSettings: NSStackView {
             self.CPUpTest.start()
             self.CPUpButton?.title = localizedString("Stop")
         }
+        self.CPUsButton?.isEnabled = !self.CPUpTest.isRunning
     }
     
     @objc private func toggleCPUsStressTest() {
+        guard !self.CPUpTest.isRunning else { return }
         if self.CPUsTest.isRunning {
             self.CPUsTest.stop()
             self.CPUsButton?.title = localizedString("Run")
@@ -493,6 +503,7 @@ class ApplicationSettings: NSStackView {
             self.CPUsTest.start()
             self.CPUsButton?.title = localizedString("Stop")
         }
+        self.CPUpButton?.isEnabled = !self.CPUsTest.isRunning
     }
     
     @objc private func toggleGPUStressTest() {

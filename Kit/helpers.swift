@@ -2147,15 +2147,22 @@ public class CPUStressTest {
     
     public func start() {
         guard !self.isRunning else { return }
-        self.isRunning = true
         
         let cpu = SystemKit.shared.device.info.cpu
+        let superCores = Int(cpu?.sCores ?? 0)
         let count: Int
         switch self.type {
-        case .efficiency: count = Int(cpu?.eCores ?? 2)
-        case .super: count = Int(cpu?.sCores ?? 0)
-        default: count = Int(cpu?.pCores ?? 4)
+        case .efficiency: count = Int(cpu?.eCores ?? (superCores > 0 ? 0 : 2))
+        case .super: count = superCores
+        default:
+            // QoS cannot select the middle tier on CPUs with super cores: the
+            // scheduler fills super cores first. Load both tiers so every
+            // performance core can participate in the test.
+            let performanceCores = Int(cpu?.pCores ?? (superCores > 0 ? 0 : 4))
+            count = performanceCores > 0 ? performanceCores + superCores : 0
         }
+        guard count > 0 else { return }
+        self.isRunning = true
         self.workers.removeAll()
         
         for _ in 0..<count {

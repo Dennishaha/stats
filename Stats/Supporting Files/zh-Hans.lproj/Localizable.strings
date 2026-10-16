@@ -171,6 +171,7 @@
 "Spacing" = "间距";
 "Choose file" = "选择文件";
 "Stress tests" = "压力测试";
+"Performance cores cannot be stressed separately from super cores on macOS." = "macOS 无法将性能核心与超级核心分开进行压力测试。";
 "Keep the menubar items position" = "保持菜单栏项目的位置"; // qwen3.8:27b
 
 // Dashboard

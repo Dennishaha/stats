@@ -171,6 +171,7 @@
 "Spacing" = "Spacing";
 "Choose file" = "Choose file";
 "Stress tests" = "Stress tests";
+"Performance cores cannot be stressed separately from super cores on macOS." = "Performance cores cannot be stressed separately from super cores on macOS.";
 "Keep the menubar items position" = "Keep the menubar items position";
 
 // Dashboard
